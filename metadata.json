@@ -1,0 +1,5 @@
+{
+  "name": "MOZA",
+  "description": "A secure real-time messenger featuring P2P chats, group conversations, and high-quality audio/video calls.",
+  "requestFramePermissions": ["camera", "microphone", "display-capture"]
+}
