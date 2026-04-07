@@ -1,0 +1,133 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: users
+    // Document ID: username (string)
+    // Fields:
+    //   - username: string (required)
+    //   - role: string (required, 'user', 'admin', 'owner')
+    //   - is_premium: boolean (optional)
+    //   - premium_expires_at: timestamp (optional)
+    //   - last_seen: timestamp (optional)
+    //
+    // Collection: messages
+    // Document ID: messageId (string)
+    // Fields:
+    //   - room: string (required)
+    //   - sender: string (required)
+    //   - content: string (required)
+    //   - timestamp: timestamp (required)
+    //   - media_url: string (optional)
+    //   - media_type: string (optional)
+    //
+    // Collection: rooms
+    // Document ID: roomId (string)
+    // Fields:
+    //   - id: string (required)
+    //   - name: string (optional)
+    //   - handle: string (optional)
+    //   - type: string (required, 'direct', 'group')
+    //   - is_private: boolean (optional)
+    //   - owner: string (optional)
+    //
+    // Collection: profiles
+    // Document ID: username (string)
+    // Fields:
+    //   - username: string (required)
+    //   - nickname: string (optional)
+    //   - bio: string (optional)
+    //   - avatar_url: string (optional)
+    //
+    // Collection: user_settings
+    // Document ID: username (string)
+    // Fields:
+    //   - username: string (required)
+    //   - notifications_private: boolean (optional)
+    //   - notifications_groups: boolean (optional)
+    //   - notifications_calls: boolean (optional)
+    //   - language: string (optional)
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(username) {
+      return isAuthenticated() && (request.auth.token.name == username || request.auth.uid == username);
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+         (request.auth.token.email == "iflhalgorev970@gmail.com" && request.auth.token.email_verified == true));
+    }
+
+    function isValidUser(data) {
+      return data.username is string && data.username.size() > 0 &&
+             data.role in ['user', 'admin', 'owner'];
+    }
+
+    function isValidMessage(data) {
+      return data.room is string && data.sender is string &&
+             data.content is string && data.timestamp is timestamp;
+    }
+
+    function isValidRoom(data) {
+      return data.id is string && data.type in ['direct', 'group'];
+    }
+
+    function isValidProfile(data) {
+      return data.username is string;
+    }
+
+    function isValidUserSettings(data) {
+      return data.username is string;
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    // Connectivity test collection
+    match /_connection_test/{docId} {
+      allow read, write: if true;
+    }
+
+    match /users/{username} {
+      allow read: if isAuthenticated();
+      allow create, update: if isAuthenticated(); // Loosened for debugging
+      allow delete: if isAdmin();
+    }
+
+    match /messages/{messageId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated(); // Loosened for debugging
+      allow update: if isAuthenticated(); // Loosened for debugging
+      allow delete: if isAdmin();
+    }
+
+    match /rooms/{roomId} {
+      allow read: if isAuthenticated();
+      allow create, update: if isAuthenticated(); // Loosened for debugging
+      allow delete: if isAdmin();
+    }
+
+    match /profiles/{username} {
+      allow read: if isAuthenticated();
+      allow create, update: if isAuthenticated(); // Loosened for debugging
+    }
+
+    match /user_settings/{username} {
+      allow read: if isAuthenticated(); // Loosened for debugging
+      allow create, update: if isAuthenticated(); // Loosened for debugging
+    }
+  }
+}

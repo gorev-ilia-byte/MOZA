@@ -1,0 +1,77 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User account information",
+      "type": "object",
+      "properties": {
+        "username": { "type": "string", "description": "Unique username" },
+        "role": { "type": "string", "enum": ["user", "admin", "owner"], "description": "User role" },
+        "is_premium": { "type": "boolean", "description": "Whether the user has premium status" },
+        "premium_expires_at": { "type": "string", "format": "date-time", "description": "When premium expires" },
+        "last_seen": { "type": "string", "format": "date-time", "description": "Last time user was active" }
+      },
+      "required": ["username", "role"]
+    },
+    "Message": {
+      "title": "Message",
+      "description": "Chat message",
+      "type": "object",
+      "properties": {
+        "room": { "type": "string", "description": "Room ID" },
+        "sender": { "type": "string", "description": "Sender username" },
+        "content": { "type": "string", "description": "Message text" },
+        "timestamp": { "type": "string", "format": "date-time", "description": "When message was sent" },
+        "media_url": { "type": "string", "description": "Optional media URL" },
+        "media_type": { "type": "string", "description": "Optional media type (image, video, etc.)" }
+      },
+      "required": ["room", "sender", "content", "timestamp"]
+    },
+    "Room": {
+      "title": "Room",
+      "description": "Chat room or direct message",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique room ID" },
+        "name": { "type": "string", "description": "Room name" },
+        "handle": { "type": "string", "description": "Room handle" },
+        "type": { "type": "string", "enum": ["direct", "group"], "description": "Room type" },
+        "is_private": { "type": "boolean", "description": "Whether the room is private" },
+        "owner": { "type": "string", "description": "Owner username" }
+      },
+      "required": ["id", "type"]
+    },
+    "Profile": {
+      "title": "Profile",
+      "description": "User profile details",
+      "type": "object",
+      "properties": {
+        "username": { "type": "string", "description": "User's username" },
+        "nickname": { "type": "string", "description": "User's display name" },
+        "bio": { "type": "string", "description": "User's bio" },
+        "avatar_url": { "type": "string", "description": "User's avatar URL" }
+      },
+      "required": ["username"]
+    },
+    "UserSettings": {
+      "title": "UserSettings",
+      "description": "User preferences",
+      "type": "object",
+      "properties": {
+        "username": { "type": "string", "description": "User's username" },
+        "notifications_private": { "type": "boolean", "description": "Enable private message notifications" },
+        "notifications_groups": { "type": "boolean", "description": "Enable group message notifications" },
+        "notifications_calls": { "type": "boolean", "description": "Enable call notifications" },
+        "language": { "type": "string", "description": "Preferred language" }
+      },
+      "required": ["username"]
+    }
+  },
+  "firestore": {
+    "/users/{username}": { "schema": "User", "description": "User accounts" },
+    "/messages/{messageId}": { "schema": "Message", "description": "Chat messages" },
+    "/rooms/{roomId}": { "schema": "Room", "description": "Chat rooms" },
+    "/profiles/{username}": { "schema": "Profile", "description": "User profiles" },
+    "/user_settings/{username}": { "schema": "UserSettings", "description": "User settings" }
+  }
+}
